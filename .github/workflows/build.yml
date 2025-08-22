@@ -1,0 +1,73 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up CMake
+        uses: jwlawson/actions-setup-cmake@v1
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev libxfixes-dev libxtst-dev libxinerama-dev libxext-dev
+
+      - name: Configure CMake
+        run: cmake -S . -B build -DBUILD_CSHARP=OFF
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Create release artifacts
+        if: github.event_name == 'release'
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            zip -j ScreenShotApp-linux-x64.zip build/ScreenShotApp
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            Compress-Archive -Path "build\Release\ScreenShotApp.exe" -DestinationPath "ScreenShotApp-windows-x64.zip" -Force
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            zip -j ScreenShotApp-macos-x64.zip build/ScreenShotApp
+          fi
+
+      - name: Upload release artifacts
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScreenShotApp-${{ runner.os }}-x64
+          path: ScreenShotApp-*.zip
+          retention-days: 1
+
+  release:
+    name: Create Release
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ScreenShotApp-linux-x64/ScreenShotApp-*.zip
+            ScreenShotApp-windows-x64/ScreenShotApp-*.zip
+            ScreenShotApp-macos-x64/ScreenShotApp-*.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
