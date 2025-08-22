@@ -23,7 +23,7 @@ cd scl-cmake-template
 
 1. Run CMake to configure the project (initial run needs internet connection):
     ```sh
-    cmake -S . -B build -DBUILD_CSHARP=OFF
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
     ```
 2. Build the project:
     ```sh
