@@ -59,7 +59,6 @@ if(WIN32)
     target_link_libraries(ScreenShotApp PRIVATE
         screen_capture_lite_static
         Dwmapi
-        Gdi32
     )
 elseif(APPLE)
     find_library(corefoundation_lib CoreFoundation REQUIRED)
