@@ -54,7 +54,7 @@ if(WIN32)
         Dwmapi
         Gdi32
     )
-elif(APPLE)
+elseif(APPLE)
     find_library(COREGRAPHICS_FRAMEWORK CoreGraphics)
     find_library(COREFND_FRAMEWORK CoreFoundation)
     target_link_libraries(ScreenShotApp PRIVATE
