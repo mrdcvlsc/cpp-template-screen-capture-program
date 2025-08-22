@@ -49,18 +49,33 @@ add_executable(ScreenShotApp main.cpp)
 add_dependencies(ScreenShotApp screen_capture_lite)
 target_include_directories(ScreenShotApp PRIVATE ${SCREEN_CAPTURE_LITE_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/external/stb)
 if(WIN32)
+    add_definitions(-DNOMINMAX)
     target_link_libraries(ScreenShotApp PRIVATE
         screen_capture_lite_static
         Dwmapi
         Gdi32
     )
 elseif(APPLE)
-    find_library(COREGRAPHICS_FRAMEWORK CoreGraphics)
-    find_library(COREFND_FRAMEWORK CoreFoundation)
+    find_library(corefoundation_lib CoreFoundation REQUIRED)
+    find_library(cocoa_lib Cocoa REQUIRED)
+    find_library(coremedia_lib CoreMedia REQUIRED)
+    find_library(avfoundation_lib AVFoundation REQUIRED)
+    find_library(coregraphics_lib CoreGraphics REQUIRED)
+    find_library(corevideo_lib CoreVideo REQUIRED)
+   
+	set(${PROJECT_NAME}_PLATFORM_LIBS
+        ${CMAKE_THREAD_LIBS_INIT}
+        ${corefoundation_lib}
+        ${cocoa_lib}
+        ${coremedia_lib}
+        ${avfoundation_lib}
+        ${coregraphics_lib}  
+        ${corevideo_lib}
+    ) 
+
     target_link_libraries(ScreenShotApp PRIVATE
         screen_capture_lite_static
-        ${COREGRAPHICS_FRAMEWORK}
-        ${COREFND_FRAMEWORK}
+        ${${PROJECT_NAME}_PLATFORM_LIBS}
     )
 else()
     target_link_libraries(ScreenShotApp PRIVATE
