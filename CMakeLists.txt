@@ -37,7 +37,12 @@ ExternalProject_Add(
 
 # do not set INTERFACE_INCLUDE_DIRECTORIES on the imported target, as the include directory may not exist at configure time
 set(SCREEN_CAPTURE_LITE_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite/include)
-set(SCREEN_CAPTURE_LITE_LIB_PATH ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite-build/src_cpp/libscreen_capture_lite_static.a)
+
+if(MSVC)
+    set(SCREEN_CAPTURE_LITE_LIB_PATH ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite-build/src_cpp/Release/${CMAKE_STATIC_LIBRARY_PREFIX}screen_capture_lite_static${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+    set(SCREEN_CAPTURE_LITE_LIB_PATH ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite-build/src_cpp/${CMAKE_STATIC_LIBRARY_PREFIX}screen_capture_lite_static${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
 
 add_library(screen_capture_lite_static IMPORTED STATIC)
 set_target_properties(screen_capture_lite_static PROPERTIES
