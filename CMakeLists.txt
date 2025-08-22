@@ -26,13 +26,14 @@ ExternalProject_Add(
     GIT_TAG master
     UPDATE_DISCONNECTED 1
     CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=Release
         -DBUILD_SHARED_LIBS=OFF
         -DBUILD_EXAMPLE=OFF
         -DBUILD_CSHARP=OFF
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/external
     PREFIX ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite
     INSTALL_COMMAND ""
-    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --target screen_capture_lite_static
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target screen_capture_lite_static
 )
 
 # do not set INTERFACE_INCLUDE_DIRECTORIES on the imported target, as the include directory may not exist at configure time
