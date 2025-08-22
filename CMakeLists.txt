@@ -27,6 +27,8 @@ ExternalProject_Add(
     UPDATE_DISCONNECTED 1
     CMAKE_ARGS
         -DBUILD_SHARED_LIBS=OFF
+        -DBUILD_EXAMPLE=OFF
+        -DBUILD_CSHARP=OFF
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/external
     PREFIX ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite
     INSTALL_COMMAND ""
