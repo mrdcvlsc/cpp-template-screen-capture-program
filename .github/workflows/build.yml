@@ -33,16 +33,18 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Create release artifacts
-        if: github.event_name == 'release'
-        run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            zip -j ScreenShotApp-linux-x64.zip build/ScreenShotApp
-          elif [ "$RUNNER_OS" = "Windows" ]; then
-            Compress-Archive -Path "build\Release\ScreenShotApp.exe" -DestinationPath "ScreenShotApp-windows-x64.zip" -Force
-          elif [ "$RUNNER_OS" = "macOS" ]; then
-            zip -j ScreenShotApp-macos-x64.zip build/ScreenShotApp
-          fi
+      - name: Create Linux artifact
+        if: runner.os == 'Linux' && github.event_name == 'release'
+        run: zip -j ScreenShotApp-linux-x64.zip build/ScreenShotApp
+
+      - name: Create Windows artifact
+        if: runner.os == 'Windows' && github.event_name == 'release'
+        run: Compress-Archive -Path "build\Release\ScreenShotApp.exe" -DestinationPath "ScreenShotApp-windows-x64.zip" -Force
+
+      - name: Create macOS artifact
+        if: runner.os == 'macOS' && github.event_name == 'release'
+        run: zip -j ScreenShotApp-macos-x64.zip build/ScreenShotApp
+
 
       - name: Upload release artifacts
         if: github.event_name == 'release'
