@@ -1,5 +1,8 @@
 name: build
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ main, fix-gh-ci ]
@@ -16,9 +19,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
-    
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout repository
@@ -43,12 +43,12 @@ jobs:
 
       - name: Create Windows artifact
         if: runner.os == 'Windows' && github.event_name == 'release'
-        run: Compress-Archive -Path "build\Release\ScreenShotApp.exe" -DestinationPath "ScreenShotApp-windows-x64.zip" -Force
+        shell: pwsh
+        run: Compress-Archive -Path "build/Release/ScreenShotApp.exe" -DestinationPath "ScreenShotApp-windows-x64.zip" -Force
 
       - name: Create macOS artifact
         if: runner.os == 'macOS' && github.event_name == 'release'
         run: zip -j ScreenShotApp-macos-x64.zip build/ScreenShotApp
-
 
       - name: Upload release artifacts
         if: github.event_name == 'release'
@@ -59,7 +59,7 @@ jobs:
           retention-days: 1
 
   release:
-    name: Create Release
+    name: Upload release assets to existing Release
     needs: build
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
@@ -67,15 +67,32 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ScreenShotApp-Linux-x64/ScreenShotApp-*.zip
-            ScreenShotApp-Windows-x64/ScreenShotApp-*.zip
-            ScreenShotApp-macOS-x64/ScreenShotApp-*.zip
-
-          draft: false
-          prerelease: false
+      - name: Upload Linux asset
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ScreenShotApp-Linux-x64/ScreenShotApp-linux-x64.zip
+          asset_name: ScreenShotApp-linux-x64.zip
+          asset_content_type: application/zip
+
+      - name: Upload Windows asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ScreenShotApp-Windows-x64/ScreenShotApp-windows-x64.zip
+          asset_name: ScreenShotApp-windows-x64.zip
+          asset_content_type: application/zip
+
+      - name: Upload macOS asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ScreenShotApp-macOS-x64/ScreenShotApp-macos-x64.zip
+          asset_name: ScreenShotApp-macos-x64.zip
+          asset_content_type: application/zip
