@@ -26,18 +26,24 @@ ExternalProject_Add(
     GIT_TAG master
     UPDATE_DISCONNECTED 1
     CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=Release
         -DBUILD_SHARED_LIBS=OFF
         -DBUILD_EXAMPLE=OFF
         -DBUILD_CSHARP=OFF
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/external
     PREFIX ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite
     INSTALL_COMMAND ""
-    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --target screen_capture_lite_static
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target screen_capture_lite_static
 )
 
 # do not set INTERFACE_INCLUDE_DIRECTORIES on the imported target, as the include directory may not exist at configure time
 set(SCREEN_CAPTURE_LITE_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite/include)
-set(SCREEN_CAPTURE_LITE_LIB_PATH ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite-build/src_cpp/libscreen_capture_lite_static.a)
+
+if(MSVC)
+    set(SCREEN_CAPTURE_LITE_LIB_PATH ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite-build/src_cpp/Release/${CMAKE_STATIC_LIBRARY_PREFIX}screen_capture_lite_static${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+    set(SCREEN_CAPTURE_LITE_LIB_PATH ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite-build/src_cpp/${CMAKE_STATIC_LIBRARY_PREFIX}screen_capture_lite_static${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
 
 add_library(screen_capture_lite_static IMPORTED STATIC)
 set_target_properties(screen_capture_lite_static PROPERTIES
@@ -54,6 +60,10 @@ if(WIN32)
         screen_capture_lite_static
         Dwmapi
         Gdi32
+        Gdi32
+        d3d11.lib
+        d3d12.lib
+        dxgi.lib
     )
 elseif(APPLE)
     find_library(corefoundation_lib CoreFoundation REQUIRED)
