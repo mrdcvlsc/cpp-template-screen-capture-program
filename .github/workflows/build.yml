@@ -37,6 +37,14 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
+      - name: Run program in ubuntu and macOS
+        if: runner.os == 'macOS' || runner.os == 'Linux'
+        run: ./build/bin/ScreenShotApp
+
+      - name: Run program in Windows
+        if: runner.os == 'Windows'
+        run: ./build/bin/Release/ScreenShotApp
+
       - name: Create Linux artifact
         if: runner.os == 'Linux' && github.event_name == 'release'
         run: zip -j ScreenShotApp-linux-x64.zip build/ScreenShotApp

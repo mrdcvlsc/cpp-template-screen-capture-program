@@ -21,8 +21,14 @@ int main() {
     std::set<int> captured_monitors;
     std::mutex monitor_mutex;
 
-    auto frame_grabber = SL::Screen_Capture::CreateCaptureConfiguration([]() {
-        auto monitors = SL::Screen_Capture::GetMonitors();
+    auto monitors = SL::Screen_Capture::GetMonitors();
+
+    if (!monitors.size()) {
+        std::cout << "No monitors detected\n";
+        return 0;
+    }
+
+    auto frame_grabber = SL::Screen_Capture::CreateCaptureConfiguration([monitors]() {
         std::cout << "Found " << monitors.size() << " monitors\n";
         return monitors; // return all monitors
     })
@@ -44,7 +50,7 @@ int main() {
 
         // convert BGRA to RGBA for stb_image_write
         std::vector<unsigned char> rgba_buffer(width * height * 4);
-        for (int i = 0; i < width * height; ++i) {
+        for (int i = 0; i < static_cast<int>(width * height); ++i) {
             rgba_buffer[i * 4 + 0] = buffer[i * 4 + 2]; // R
             rgba_buffer[i * 4 + 1] = buffer[i * 4 + 1]; // G
             rgba_buffer[i * 4 + 2] = buffer[i * 4 + 0]; // B

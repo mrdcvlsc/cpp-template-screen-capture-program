@@ -16,3 +16,6 @@ Diagnostics:
       cppcoreguidelines-avoid-magic-numbers,
       cppcoreguidelines-special-member-functions,
     ]
+
+If:
+  PathExclude: ./build
