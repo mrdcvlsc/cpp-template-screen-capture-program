@@ -1,7 +1,6 @@
-#include <iostream>
-#include <fstream>
 #include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <thread>
 #include <vector>
 #include <ctime>
@@ -9,17 +8,20 @@
 #include <sstream>
 #include <set>
 #include <mutex>
+
 #include <ScreenCapture.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "external/stb/stb_image_write.h"
+
+#include <iostream>
 
 int main() {
     std::atomic<bool> captured{false};
     std::set<int> captured_monitors;
     std::mutex monitor_mutex;
 
-    auto framgrabber = SL::Screen_Capture::CreateCaptureConfiguration([]() {
+    auto frame_grabber = SL::Screen_Capture::CreateCaptureConfiguration([]() {
         auto monitors = SL::Screen_Capture::GetMonitors();
         std::cout << "Found " << monitors.size() << " monitors\n";
         return monitors; // return all monitors
@@ -34,8 +36,8 @@ int main() {
         
         std::cout << "Capturing from monitor: " << monitor.Name << " (Index: " << monitor.Index << ")\n";
         
-        int width = SL::Screen_Capture::Width(img);
-        int height = SL::Screen_Capture::Height(img);
+        size_t width = SL::Screen_Capture::Width(img);
+        size_t height = SL::Screen_Capture::Height(img);
         size_t dataSize = width * height * sizeof(SL::Screen_Capture::ImageBGRA);
         std::vector<unsigned char> buffer(dataSize);
         SL::Screen_Capture::Extract(img, buffer.data(), buffer.size());

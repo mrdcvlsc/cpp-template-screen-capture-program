@@ -1,12 +1,17 @@
 cmake_minimum_required(VERSION 3.30)
 project(ScreenShotApp LANGUAGES CXX)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(ExternalProject)
 
-# download stb_image_write.h from the official repository
+# ================ download stb_image_write.h ================
+
 ExternalProject_Add(
     stb_image_write
     URL https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
@@ -17,8 +22,9 @@ ExternalProject_Add(
     PREFIX ${CMAKE_BINARY_DIR}/_deps/stb_image_write
 )
 
-# ensure the directory exists for the header
-file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/external/stb)
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/external/stb) # ensure the directory exists for the header
+
+# ================ download screen_capture_lite ================
 
 ExternalProject_Add(
     screen_capture_lite
@@ -36,7 +42,6 @@ ExternalProject_Add(
     BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target screen_capture_lite_static
 )
 
-# do not set INTERFACE_INCLUDE_DIRECTORIES on the imported target, as the include directory may not exist at configure time
 set(SCREEN_CAPTURE_LITE_INCLUDE_DIR ${CMAKE_BINARY_DIR}/_deps/screen_capture_lite/src/screen_capture_lite/include)
 
 if(MSVC)
@@ -46,24 +51,20 @@ else()
 endif()
 
 add_library(screen_capture_lite_static IMPORTED STATIC)
+
 set_target_properties(screen_capture_lite_static PROPERTIES
     IMPORTED_LOCATION ${SCREEN_CAPTURE_LITE_LIB_PATH}
 )
+
 add_dependencies(screen_capture_lite_static screen_capture_lite)
 
-add_executable(ScreenShotApp main.cpp)
-add_dependencies(ScreenShotApp screen_capture_lite)
-target_include_directories(ScreenShotApp PRIVATE ${SCREEN_CAPTURE_LITE_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/external/stb)
+# setup screen capture static linked libraries
+
 if(WIN32)
     add_definitions(-DNOMINMAX)
-    target_link_libraries(ScreenShotApp PRIVATE
+    set(SCREEN_CAPTURE_LITE_STATIC_LIB_AND_DEPENDENCIES
         screen_capture_lite_static
-        Dwmapi
-        Gdi32
-        Gdi32
-        d3d11.lib
-        d3d12.lib
-        dxgi.lib
+        Dwmapi Gdi32 Gdi32 d3d11.lib d3d12.lib dxgi.lib
     )
 elseif(APPLE)
     find_library(corefoundation_lib CoreFoundation REQUIRED)
@@ -73,23 +74,21 @@ elseif(APPLE)
     find_library(coregraphics_lib CoreGraphics REQUIRED)
     find_library(corevideo_lib CoreVideo REQUIRED)
    
-	set(${PROJECT_NAME}_PLATFORM_LIBS
-        ${CMAKE_THREAD_LIBS_INIT}
-        ${corefoundation_lib}
-        ${cocoa_lib}
-        ${coremedia_lib}
-        ${avfoundation_lib}
-        ${coregraphics_lib}  
-        ${corevideo_lib}
-    ) 
-
-    target_link_libraries(ScreenShotApp PRIVATE
+	set(SCREEN_CAPTURE_LITE_STATIC_LIB_AND_DEPENDENCIES
         screen_capture_lite_static
-        ${${PROJECT_NAME}_PLATFORM_LIBS}
-    )
+        ${CMAKE_THREAD_LIBS_INIT} ${corefoundation_lib}
+        ${cocoa_lib} ${coremedia_lib} ${avfoundation_lib}
+        ${coregraphics_lib} ${corevideo_lib}
+    ) 
 else()
-    target_link_libraries(ScreenShotApp PRIVATE
+    set(SCREEN_CAPTURE_LITE_STATIC_LIB_AND_DEPENDENCIES
         screen_capture_lite_static
         X11 Xfixes Xtst Xinerama Xext
     )
 endif()
+
+# ================ compile program ================
+
+add_executable(ScreenShotApp main.cpp)
+target_include_directories(ScreenShotApp PRIVATE ${SCREEN_CAPTURE_LITE_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/external/stb)
+target_link_libraries(ScreenShotApp PRIVATE ${SCREEN_CAPTURE_LITE_STATIC_LIB_AND_DEPENDENCIES})
